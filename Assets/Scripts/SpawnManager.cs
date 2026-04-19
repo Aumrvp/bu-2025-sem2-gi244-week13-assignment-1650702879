@@ -3,7 +3,7 @@ using UnityEngine;
 public class SpawnManager : MonoBehaviour
 {
     public Transform spawnPoint;
-    public GameObject obstaclePrefab;
+    public ObstacleObjectPool pool;
 
     void Start()
     {
@@ -20,10 +20,26 @@ public class SpawnManager : MonoBehaviour
             return;
         }
 
-        Instantiate(
-            obstaclePrefab,
-            spawnPoint.position,
-            obstaclePrefab.transform.rotation
-        );
+        int obstacleType = Random.Range(0, 3);
+        GameObject obstacle = pool.Acquire(obstacleType);
+        if (obstacle == null) return;
+
+        obstacle.transform.position = spawnPoint.position;
+        obstacle.transform.rotation = spawnPoint.rotation;
+
+        Rigidbody rb = obstacle.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        MoveLeft mover = obstacle.GetComponent<MoveLeft>();
+        if (mover != null)
+        {
+            mover.obstacleType = obstacleType;
+            mover.pool = pool;
+            mover.speed = 10f;
+        }
     }
 }
